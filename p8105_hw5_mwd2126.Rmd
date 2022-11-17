@@ -31,11 +31,42 @@ theme_set(theme_minimal() + theme(legend.position = "bottom"))
 
 ### Problem 1
 
-TBD...
+Skipped due to time.
 
 ### Problem 2
 
+First, we'll start by importing the data from the Washington Post's Github page.
+```{r read data}
+homicide <- read.csv("https://raw.githubusercontent.com/washingtonpost/data-homicides/master/homicide-data.csv")
+```
 
+The `homicide` data frame includes `nrow(homicide)` rows and `ncol(homicide)` columns. It includes information on about `ncol(homicide)` homicides in 50 of the largest cities by population in the United States. It includes the date the homicide was reported; the victim's name, race, age, and sex; the city, state, and geographical coordinates of the homicide's location; and the legal status of the investigation.
+
+Now we'll create a new column with a `city_state` variable. Then we'll summarize within cities to obtain the total number of homicides and the number of unsolved homicides.
+
+```{r}
+homicide = homicide %>% 
+  mutate(
+    city_state = str_c(city, ", ", state)
+  )
+
+total_and_unsolved = homicide %>% 
+  group_by(city_state) %>% 
+  summarize(
+    n_obs = n(),
+    n_unsolved = str_count(disposition != "Closed by arrest")
+  )
+```
+
+Now we look specifically at Baltimore to estimate the proportion of homicides that are unsolved.
+
+```{r}
+baltimore = homicide %>%
+  filter(city_state == "Baltimore, MD")
+
+```
+
+I ran out of time so was unable to complete the rest of Problem 2.
 
 ### Problem 3
 
@@ -46,7 +77,6 @@ First, we start by setting a seed.
 ```{r set seed}
 set.seed(1)
 ```
-
 
 We'll make a function that outputs a `mu_hat` and `p_value` for each `mu` using a one-sample t-test. 
 We set the values for the design elements `n` and `sigma` as 30 and 5, respectively.
@@ -71,7 +101,7 @@ Then we run this analysis with `mu` values of 0, 1, 2, 3, 4, 5, and 6, with 5,00
 sim_results_df = 
   expand_grid(
     mu = 0:6,
-    iter = 1:50
+    iter = 1:5000
   ) %>% 
   mutate(
     estimate_df = map(mu, sim_t)
@@ -83,7 +113,7 @@ We'll make a function to calculate power.
 
 ```{r power}
 sim_power = function(mu) {
-  sum(sim_results_df$mu == mu & sim_results_df$p.value <= 0.05)/50
+  sum(sim_results_df$mu == mu & sim_results_df$p.value <= 0.05)/5000
 }
 ```
 
