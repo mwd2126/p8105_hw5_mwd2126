@@ -6,6 +6,102 @@ output: github_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(p8105.datasets)
+library(viridis)
+
+knitr::opts_chunk$set(
+	echo = TRUE,
+	warning = FALSE,
+	fig.width = 8, 
+  fig.height = 6,
+  out.width = "90%"
+)
+
+options(
+  ggplot2.continuous.colour = "viridis",
+  ggplot2.continuous.fill = "viridis"
+)
+
+scale_colour_discrete = scale_colour_viridis_d
+scale_fill_discrete = scale_fill_viridis_d
+
+theme_set(theme_minimal() + theme(legend.position = "bottom"))
+```
+
+### Problem 1
+
+TBD...
+
+### Problem 2
+
+
+
+### Problem 3
+
+This problem develops a simulation to explore power in a one-sample t-test.
+
+First, we start by setting a seed.
+
+```{r set seed}
+set.seed(1)
+```
+
+
+We'll make a function that outputs a `mu_hat` and `p_value` for each `mu` using a one-sample t-test. 
+We set the values for the design elements `n` and `sigma` as 30 and 5, respectively.
+
+```{r sim_t}
+sim_t = function(mu, n = 30, sigma = 5) {
+  
+  sim_data = tibble(
+    x = rnorm(n = n, mean = mu, sd = sigma),
+  )
+  
+  sim_data %>% 
+    t.test(mu = mu) %>%
+    broom::tidy() %>% 
+    select(c('estimate','p.value'))
+}
+```
+
+Then we run this analysis with `mu` values of 0, 1, 2, 3, 4, 5, and 6, with 5,000 iterations for each.
+
+```{r mu of 0 to 6}
+sim_results_df = 
+  expand_grid(
+    mu = 0:6,
+    iter = 1:50
+  ) %>% 
+  mutate(
+    estimate_df = map(mu, sim_t)
+  ) %>% 
+  unnest(estimate_df)
+```
+
+We'll make a function to calculate power.
+
+```{r power}
+sim_power = function(mu) {
+  sum(sim_results_df$mu == mu & sim_results_df$p.value <= 0.05)/50
+}
+```
+
+And now apply it to values of `mu` from 0 to 6.
+
+```{r}
+powers_for_sim = 
+  expand_grid(
+    mu = 0:6) %>% 
+  mutate(
+    power_df = map(mu, sim_power)
+  ) %>% 
+unnest(power_df)
+```
+
+Now we'll graph these on a plot showing the true value of `mu` (x-axis) versus power (y-axis).
+
+```{r}
 
 ```
+
