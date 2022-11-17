@@ -100,8 +100,48 @@ unnest(power_df)
 ```
 
 Now we'll graph these on a plot showing the true value of `mu` (x-axis) versus power (y-axis).
+Generally, as effect size goes up, power increases.
 
 ```{r}
-
+powers_for_sim %>% 
+ggplot(aes(x = mu, y = power_df)) + 
+  geom_point() +
+  labs(title = "Power vs. Mu") +
+  xlab("Mu") +
+  ylab("Power")
+ggsave("Power_v_mu.png")
 ```
+Now we'll make a plot showing the average mean estimate `mu_hat` versus the true mean `mu`.
 
+```{r}
+mu_hats =
+  sim_results_df %>% 
+  group_by(mu) %>% 
+  summarize(
+    mu_hat = mean(estimate))
+
+ggplot(mu_hats, aes(x = mu, y = mu_hat)) + 
+  geom_point() +
+  labs(title = "Mu_hat vs. Mu") +
+  xlab("Mu") +
+  ylab("Mu_hat")
+ggsave("mu_hat_v_mu.png")
+```
+Then we'll make a plot showing the average mean estimate `mu_hat` versus the true mean `mu` only for samples in which the null was rejected.
+
+```{r}
+mu_hats_rej =
+  sim_results_df %>%
+  filter(p.value <= 0.5) %>% 
+  group_by(mu) %>% 
+  summarize(
+    mu_hat = mean(estimate))
+
+ggplot(mu_hats_rej, aes(x = mu, y = mu_hat)) + 
+  geom_point() +
+  labs(title = "Mu_hat vs. Mu for Samples in Which the Null Was Rejected") +
+  xlab("Mu") +
+  ylab("Mu_hat")
+ggsave("Mu_hat_v_mu_rej.png")
+```
+The sample average of `mu_hat` across tests for which the null hypothesis is rejected is approximately equal to the true value of `mu`. While each individual `mu_hat` value might be farther away from the mean, when analyzed together, they still surround the true value of `mu`.
